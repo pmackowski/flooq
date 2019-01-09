@@ -14,7 +14,8 @@ dependencies {
     implementation 'io.projectreactor:reactor-core:3.2.3.RELEASE'
     implementation 'com.rabbitmq:amqp-client:5.5.2'
     implementation 'io.projectreactor.rabbitmq:reactor-rabbitmq:1.0.0.RELEASE'
-
+    implementation 'com.google.code.gson:gson:2.8.5'
+    
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.3.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.2'

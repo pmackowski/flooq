@@ -2,6 +2,7 @@ package io.github.rabbitmq.flow;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Delivery;
+import io.github.rabbitmq.flow.utils.TestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +14,8 @@ import java.io.IOException;
 
 import static io.github.rabbitmq.flow.RabbitMqDeclare.DEAD_LETTER_EXCHANGE;
 import static io.github.rabbitmq.flow.RabbitMqDeclare.DEAD_LETTER_SUFFIX;
-import static io.github.rabbitmq.flow.TestUtils.consume;
-import static io.github.rabbitmq.flow.TestUtils.outboundMessageFlux;
+import static io.github.rabbitmq.flow.utils.TestUtils.consume;
+import static io.github.rabbitmq.flow.utils.TestUtils.outboundMessageFlux;
 
 class RabbitMqDeclareTest {
 
@@ -60,8 +61,6 @@ class RabbitMqDeclareTest {
 
         sender.delete(new ExchangeSpecification().name(EXCHANGE_NAME)).block();
         sender.delete(new ExchangeSpecification().name(DEAD_LETTER_EXCHANGE)).block();
-
-
         sender.delete(new QueueSpecification().name(QUEUE_NAME)).block();
         sender.delete(new QueueSpecification().name(QUEUE_NAME + DEAD_LETTER_SUFFIX)).block();
 
