@@ -11,10 +11,12 @@ public class TestFlowEvent implements FlowEvent {
     private static Gson gson = new Gson();
 
     private final int i;
+    private final String exchange;
     private final String routingKey;
 
-    private TestFlowEvent(int i, String routingKey) {
+    private TestFlowEvent(int i, String exchange, String routingKey) {
         this.i = i;
+        this.exchange = exchange;
         this.routingKey = routingKey;
     }
 
@@ -23,7 +25,11 @@ public class TestFlowEvent implements FlowEvent {
     }
 
     public static TestFlowEvent create(int i, String routingKey) {
-        return new TestFlowEvent(i, routingKey);
+        return new TestFlowEvent(i, "", routingKey);
+    }
+
+    public static TestFlowEvent create(Integer i, String exchange, String routingKey) {
+        return new TestFlowEvent(i, exchange, routingKey);
     }
 
     public int getI() {

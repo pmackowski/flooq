@@ -34,6 +34,10 @@ class RabbitMqDeclare {
         this.options = options;
     }
 
+    public Mono<?> declareExchange(String exchangeName, ExchangeType exchangeType) {
+        return sender.declare(exchangeSpecification(exchangeName, exchangeType)).cache();
+    }
+
     public Mono<?> declareExchange(String exchangeName) {
         return sender.declare(exchangeSpecification(exchangeName)).cache();
     }
@@ -49,7 +53,7 @@ class RabbitMqDeclare {
         return sender.declareExchange(exchangeSpecification(exchangeName))
                 .then(sender.declareQueue(queueSpecificationWithDeadLetterQueue(queueName)))
                 .then(sender.bind(binding().exchange(exchangeName).queue(queueName).routingKey(routingKey)))
-                .then(declareDeadLetterQueue(queueName))
+                //.then(declareDeadLetterQueue(queueName))
                 .cache();
     }
 
@@ -62,8 +66,8 @@ class RabbitMqDeclare {
 
     private QueueSpecification queueSpecificationWithDeadLetterQueue(String queueName) {
         Map<String,Object> arguments = new LinkedHashMap<>();
-        arguments.put("x-dead-letter-exchange", DEAD_LETTER_EXCHANGE);
-        arguments.put("x-dead-letter-routing-key", queueName);
+//        arguments.put("x-dead-letter-exchange", DEAD_LETTER_EXCHANGE);
+//        arguments.put("x-dead-letter-routing-key", queueName);
         arguments.put("x-max-priority", QUEUE_MAX_PRIORITY);
         return queueSpecification(queueName)
                 .arguments(arguments);
@@ -77,8 +81,14 @@ class RabbitMqDeclare {
     private ExchangeSpecification exchangeSpecification(String exchangeName) {
         return exchange(exchangeName)
                 .durable(options.isDurable())
-                .type(EXCHANGE_TYPE);
+                .type(ExchangeType.CONSISTENT_HASH.getValue());
+//                .type(EXCHANGE_TYPE);
     }
 
+    private ExchangeSpecification exchangeSpecification(String exchangeName, ExchangeType exchangeType) {
+        return exchange(exchangeName)
+                .durable(options.isDurable())
+                .type(exchangeType.getValue());
+    }
 
 }

@@ -23,6 +23,10 @@ public class TestUtils {
         return Flux.range(0, nbMessages).map(i -> TestFlowEvent.create(i, queue));
     }
 
+    public static Flux<TestFlowEvent> flowEventFlux(String exchange, String routingKey, int nbMessages) {
+        return Flux.range(0, nbMessages).map(i -> TestFlowEvent.create(i, exchange, routingKey));
+    }
+
     public static Flux<OutboundMessage> outboundMessageFlux(String queue, int nbMessages) {
         return Flux.range(0, nbMessages).map(i -> new OutboundMessage("", queue, "".getBytes()));
     }

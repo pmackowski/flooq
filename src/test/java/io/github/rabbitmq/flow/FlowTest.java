@@ -1,16 +1,19 @@
 package io.github.rabbitmq.flow;
 
+import io.github.rabbitmq.flow.utils.TestFlowEvent;
+import io.github.rabbitmq.flow.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.function.Function;
 
 public class FlowTest {
-
+    // {"i":0,"exchange":"exchangeName","routingKey":""}
     private static final String EXCHANGE_NAME = "exchangeName";
     private static final String START_EXCHANGE = "startExchangeName";
     private static final String END_EXCHANGE_NAME = "endExchangeName";
@@ -18,89 +21,96 @@ public class FlowTest {
 
     @Test
     public void createsTopicExchangeOnly() {
-        Mono<Void> flow = new Flow<String>()
+        Mono<Void> flow = new Flow<TestFlowEvent>()
                 .begin(flowBegin -> flowBegin
                         .exchange(EXCHANGE_NAME)
                 )
                 .end();
 
-        flow.subscribe();
+        StepVerifier.create(flow).verifyComplete();
 
     }
 
     @Test
     public void createsConsistentHashExchangeOnly() {
-        Mono<Void> flow = new Flow<String>()
+        Mono<Void> flow = new Flow<TestFlowEvent>()
                 .begin(flowBegin -> flowBegin
                         .exchange(EXCHANGE_NAME, ExchangeType.CONSISTENT_HASH)
                 )
                 .end();
 
-        flow.subscribe();
+        StepVerifier.create(flow).verifyComplete();
 
     }
 
     @Test
     public void createsTopicExchangeAndPublishMessages() {
-        Flux<Long> publisher = Flux.interval(Duration.ofSeconds(1));
+        Flux<TestFlowEvent> publisher = TestUtils.flowEventFlux(EXCHANGE_NAME, "", 10);
 
-        Mono<Void> flow = new Flow<Long>()
+        Mono<Void> flow = new Flow<TestFlowEvent>()
                 .begin(flowBegin -> flowBegin
                     .exchange(EXCHANGE_NAME)
                     .publisher(publisher)
                 )
                 .end();
 
+        StepVerifier.create(flow).verifyComplete();
 
-        flow.subscribe();
     }
 
     @Test
     public void createsExchangeAndQueue() {
-        Flux<Long> publisher = Flux.interval(Duration.ofSeconds(1));
+        Flux<TestFlowEvent> publisher = TestUtils.flowEventFlux(EXCHANGE_NAME, "", 10);
 
-        Flux<Long> flow = new Flow<Long>()
+        StepVerifier.create(new Flow<TestFlowEvent>()
                 .begin(flowBegin -> flowBegin
                         .exchange(EXCHANGE_NAME)
                         .publisher(publisher)
                 )
                 .end(flowConsume -> flowConsume
                         .inputExchange(EXCHANGE_NAME)
-                        .routingKey("a.*")
-                        .consume(String.class, consume())
-                );
-
-        flow.subscribe();
+                        .routingKey("#")
+                        .queueName(QUEUE_NAME)
+                        .type(TestFlowEvent.class)
+                        .consume(consume())
+                )
+        ).expectNextCount(10)
+          .thenCancel()
+                .verify();
     }
 
     @Test
     public void createsConsistentHashExchangeAndVirtualQueue() {
-        Flux<Long> publisher = Flux.interval(Duration.ofSeconds(1));
+        Flux<TestFlowEvent> publisher = TestUtils.flowEventFlux(EXCHANGE_NAME, "", 10);
 
-        Flux<Long> flow = new Flow<Long>()
+        Flux<TestFlowEvent> flow = new Flow<TestFlowEvent>()
                 .begin(flowBegin -> flowBegin
-                        .exchange(EXCHANGE_NAME)
-                        .publisher(publisher)
+                        .exchange(EXCHANGE_NAME, ExchangeType.CONSISTENT_HASH)
+                        //.publisher(publisher)
                 )
                 .end(flowConsume -> flowConsume
                         .inputExchange(EXCHANGE_NAME)
-                        // creates 5 queues `QUEUE_NAME.%d` where %d is in [1,2,3,4,5]
-                        .virtualQueue(QUEUE_NAME, 5)
-                        // creates 5 consumers, one consumer per queue
+                        .type(TestFlowEvent.class)
+                        // creates 3 queues `QUEUE_NAME.%d` where %d is in [1,2,3]
+                        .virtualQueue(QUEUE_NAME, 3)
+                        // creates 3 consumers, one consumer per queue
                         // if consumer dies, new one is created
-                        .consume(String.class, consume())
+                        .consume(consume())
                 );
 
-        flow.subscribe();
+        StepVerifier.create(flow)
+                .thenAwait(Duration.ofMinutes(5))
+                .thenCancel()
+                .verify();
     }
 
 
     @Test
     public void flow() {
 
-        Flux<String> publisher = Flux.just("a", "b");
+        Flux<TestFlowEvent> publisher = TestUtils.flowEventFlux(EXCHANGE_NAME, "", 10);
 
-        Flux<String> flow = new Flow<String>()
+        Flux<TestFlowEvent> flow = new Flow<TestFlowEvent>()
                 .begin(flowBegin -> flowBegin
                         .exchange(START_EXCHANGE)
                         .publisher(publisher)
@@ -122,15 +132,15 @@ public class FlowTest {
 
                 .end(flowConsume -> flowConsume
                         .inputExchange(END_EXCHANGE_NAME)
-                        .consume(String.class, consume())
+                        .consume(consume())
                 );
 
         flow.subscribe();
     }
 
-    private Function<Flux<String>, Flux<String>> consume() {
+    private Function<Flux<TestFlowEvent>, Flux<TestFlowEvent>> consume() {
         return messages ->
-                messages.doOnNext(System.out::println);
+                messages.doOnNext(System.out::println).doOnError(throwable -> System.out.println("ss " + throwable));
     }
 
     private Function<String, Publisher<String>> toLowercase() {
