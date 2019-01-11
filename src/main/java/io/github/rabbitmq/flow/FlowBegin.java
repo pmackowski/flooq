@@ -4,7 +4,11 @@ import org.reactivestreams.Publisher;
 
 public class FlowBegin<T> {
 
-    public FlowBegin<T> exchangeName(String exchangeName) {
+    public FlowBegin<T> exchange(String exchangeName) {
+        return exchange(exchangeName, ExchangeType.TOPIC);
+    }
+
+    public FlowBegin<T> exchange(String exchangeName, ExchangeType exchangeType) {
         return this;
     }
 
