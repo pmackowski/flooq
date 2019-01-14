@@ -3,9 +3,11 @@ package io.github.rabbitmq.flow;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.BindingSpecification;
+import reactor.rabbitmq.ExceptionHandlers;
 import reactor.rabbitmq.RabbitFlux;
 import reactor.rabbitmq.Sender;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -23,7 +25,9 @@ public class Flow<T extends FlowEvent> {
         Sender sender = RabbitFlux.createSender();
         this.rabbitMqSender = new RabbitMqSender(sender, new RabbitMqDeclareOptions());
         this.rabbitMqDeclare = new RabbitMqDeclare(sender);
-        this.rabbitMqReceiver = new RabbitMqReceiver(RabbitFlux.createReceiver(), rabbitMqDeclare);
+        this.rabbitMqReceiver = new RabbitMqReceiver(RabbitFlux.createReceiver(), rabbitMqDeclare,
+                new RetryAcknowledgement(new ExceptionHandlers.SimpleRetryTemplate(Duration.ofSeconds(20), Duration.ofMillis(500),
+                        ExceptionHandlers.CONNECTION_RECOVERY_PREDICATE)));
     }
 
     public Flow<T> begin(Function<FlowBegin<T>, FlowBegin<T>> flowBeginFunction) {
