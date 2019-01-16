@@ -7,7 +7,7 @@ import reactor.rabbitmq.AcknowledgableDelivery;
 import java.time.Duration;
 import java.util.function.Function;
 
-class ConsumerImpl implements Consumer {
+class DefaultConsumer implements Consumer {
 
     private String inputExchange;
     private String routingKey;
@@ -69,4 +69,23 @@ class ConsumerImpl implements Consumer {
         return this;
     }
 
+    public String getInputExchange() {
+        return inputExchange;
+    }
+
+    public String getRoutingKey() {
+        return routingKey;
+    }
+
+    public String getQueue() {
+        return queue;
+    }
+
+    public boolean isAtMostOneConsumer() {
+        return atMostOneConsumer;
+    }
+
+    public Duration getLeaseTime() {
+        return leaseTime;
+    }
 }

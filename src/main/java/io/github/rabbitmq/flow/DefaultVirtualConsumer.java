@@ -11,7 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-class VirtualConsumerImpl implements VirtualConsumer {
+class DefaultVirtualConsumer implements VirtualConsumer {
 
     private static final int DEFAULT_BUCKETS_PER_QUEUE = 1;
     private static final int DEFAULT_PARTITIONS_NO = 3;
@@ -79,5 +79,29 @@ class VirtualConsumerImpl implements VirtualConsumer {
     public VirtualConsumer consumeManualAck(Function<Flux<AcknowledgableDelivery>,Flux<AcknowledgableDelivery>> consumeManualAck) {
         this.consumeManualAck = consumeManualAck;
         return this;
+    }
+
+    public String getInputExchange() {
+        return inputExchange;
+    }
+
+    public String getQueueName() {
+        return queueName;
+    }
+
+    public int getPartitions() {
+        return partitions;
+    }
+
+    public List<Integer> getBuckets() {
+        return buckets;
+    }
+
+    public boolean isAtMostOne() {
+        return atMostOne;
+    }
+
+    public Duration getLeaseTime() {
+        return leaseTime;
     }
 }

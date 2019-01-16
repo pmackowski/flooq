@@ -5,10 +5,11 @@ import reactor.rabbitmq.OutboundMessage;
 
 import java.util.function.Function;
 
-class ShovelImpl implements Shovel {
+class DefaultShovel implements Shovel {
 
     private String inputExchange;
     private String outputExchange;
+    private ExchangeType outputExchangeType;
     private String queue;
     private String routingKey;
     private Function<OutboundMessage, Publisher<OutboundMessage>> transform;
@@ -22,6 +23,13 @@ class ShovelImpl implements Shovel {
     @Override
     public Shovel outputExchange(String outputExchange) {
         this.outputExchange = outputExchange;
+        return this;
+    }
+
+    @Override
+    public Shovel outputExchange(String outputExchange, ExchangeType exchangeType) {
+        this.outputExchange = outputExchange;
+        this.outputExchangeType = exchangeType;
         return this;
     }
 
@@ -43,4 +51,19 @@ class ShovelImpl implements Shovel {
         return this;
     }
 
+    public String getInputExchange() {
+        return inputExchange;
+    }
+
+    public String getOutputExchange() {
+        return outputExchange;
+    }
+
+    public String getQueue() {
+        return queue;
+    }
+
+    public String getRoutingKey() {
+        return routingKey;
+    }
 }

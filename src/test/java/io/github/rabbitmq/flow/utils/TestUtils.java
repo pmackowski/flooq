@@ -1,7 +1,7 @@
 package io.github.rabbitmq.flow.utils;
 
 import com.rabbitmq.client.*;
-import io.github.rabbitmq.flow.RabbitMqFlowException;
+import io.github.rabbitmq.flow.FlowException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
@@ -57,7 +57,7 @@ public class TestUtils {
             try {
                 channel.basicConsume(queue, true, deliverCallback, consumerTag -> {});
             } catch (IOException e) {
-                throw new RabbitMqFlowException(e);
+                throw new FlowException(e);
             }
         }));
         return consumeFlux.timeout(timeout);
@@ -67,7 +67,7 @@ public class TestUtils {
         try {
             return connection.createChannel();
         } catch (Exception e) {
-            throw new RabbitMqFlowException(e);
+            throw new FlowException(e);
         }
     }
 

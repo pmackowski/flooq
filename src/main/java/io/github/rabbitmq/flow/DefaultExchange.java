@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
 
-class ExchangeImpl implements Exchange {
+class DefaultExchange implements Exchange {
 
     private String exchange;
     private ExchangeType exchangeType = ExchangeType.TOPIC;

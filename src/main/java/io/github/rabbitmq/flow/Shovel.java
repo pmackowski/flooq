@@ -11,6 +11,8 @@ public interface Shovel {
 
     Shovel outputExchange(String outputExchange);
 
+    Shovel outputExchange(String outputExchange, ExchangeType exchangeType);
+
     Shovel queue(String queue);
 
     Shovel routingKey(String routingKey);

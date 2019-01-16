@@ -7,7 +7,6 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
-import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -24,31 +23,29 @@ public class FlowBuilderTest {
 
     @Test
     public void createTopic() {
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .topic(EXCHANGE_NAME)
                 .build();
 
-        StepVerifier.create(flow).verifyComplete();
+        flow.start();
     }
 
     @Test
     public void createTopicPartition() {
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .topicPartition(EXCHANGE_NAME)
                 .build();
 
-        StepVerifier.create(flow).verifyComplete();
+        flow.start();
     }
 
     @Test
     public void createTopicAndStartPublishing() {
         Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, "", 10);
 
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .topic(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher))
                 .build();
-
-        StepVerifier.create(flow).verifyComplete();
 
     }
 
@@ -56,7 +53,7 @@ public class FlowBuilderTest {
     public void createTopicAndStartConsuming() {
         Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, "", 10);
 
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .topic(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher))
                 .fromTopic(consumer -> consumer
                         .inputExchange(EXCHANGE_NAME)
@@ -66,14 +63,14 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        StepVerifier.create(flow).verifyComplete();
+        flow.start();
     }
 
     @Test
     public void createsTopicAndStartConsumingExclusivelyInCluster() {
         Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, "", 10);
 
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .topic(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher))
                 .fromTopic(consumer -> consumer
                         .inputExchange(EXCHANGE_NAME)
@@ -84,14 +81,11 @@ public class FlowBuilderTest {
                         .consumeAutoAck(consume())
                 )
                 .build();
-
-        StepVerifier.create(flow).verifyComplete();
     }
 
     @Test
     public void createOneToManyRelationshipBetweenTopicAndQueue() {
-
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .topic(toTopic -> toTopic.exchange(EXCHANGE_NAME))
                 .fromTopic(consumer -> consumer
                         .inputExchange(EXCHANGE_NAME)
@@ -107,12 +101,12 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        StepVerifier.create(flow).verifyComplete();
+        flow.start();
     }
 
     @Test
     public void createTopicPartitionAndStartConsuming() {
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .fromTopicPartition(virtualConsumer -> virtualConsumer
                         .inputExchange(EXCHANGE_NAME)
                         // creates 2 queues `QUEUE_NAME.%d` where %d is in [1,2]
@@ -123,13 +117,11 @@ public class FlowBuilderTest {
                         .consumeAutoAck(consume())
                 )
                 .build();
-
-        StepVerifier.create(flow).verifyComplete();
     }
 
     @Test
     public void createTopicPartitionAndStartConsumingExclusivelyInCluster() {
-        Mono<Void> flow = new FlowBuilder()
+        Flow flow = new FlowBuilder()
                 .fromTopicPartition(virtualConsumer -> virtualConsumer
                         .inputExchange(EXCHANGE_NAME)
                         // creates 2 queues `QUEUE_NAME.%d` where %d is in [1,2]
@@ -141,14 +133,11 @@ public class FlowBuilderTest {
                         .consumeAutoAck(consume())
                 )
                 .build();
-
-        StepVerifier.create(flow).verifyComplete();
     }
 
     @Test
     public void createShovelAndTheConsume() {
-        Mono<Void> flow = new FlowBuilder()
-                .topic(exchange -> exchange.exchange(START_EXCHANGE))
+        Flow flow = new FlowBuilder()
                 .shovel(shovel -> shovel
                         .inputExchange(START_EXCHANGE)
                         .outputExchange(END_EXCHANGE)
@@ -170,7 +159,27 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        StepVerifier.create(flow).verifyComplete();
+    }
+
+    @Test
+    public void createShovelPartitionsAndTheConsume() {
+        Flow flow = new FlowBuilder()
+                .shovelPartitions(shovelPartition -> shovelPartition
+                        .inputExchange(START_EXCHANGE)
+                        .outputExchange(END_EXCHANGE, ExchangeType.TOPIC)
+                        .queue(QUEUE_NAME_1, 2)
+//                        .buckets(Arrays.asList(1, 2))
+                        .transform(toLowercase())
+                )
+                .fromTopic(consumer -> consumer
+                        .inputExchange(END_EXCHANGE)
+                        .routingKey("#")
+                        .queue(QUEUE_NAME_2)
+                        .consumeAutoAck(consume())
+                )
+                .build();
+
+        flow.start();
     }
 
     private Function<Flux<Delivery>, Flux<Delivery>> consume() {
