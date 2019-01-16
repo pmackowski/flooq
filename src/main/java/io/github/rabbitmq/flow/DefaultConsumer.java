@@ -88,4 +88,16 @@ class DefaultConsumer implements Consumer {
     public Duration getLeaseTime() {
         return leaseTime;
     }
+
+    public Function<Flux<Delivery>, Flux<Delivery>> getConsumeNoAck() {
+        return consumeNoAck;
+    }
+
+    public Function<Flux<Delivery>, Flux<Delivery>> getConsumeAutoAck() {
+        return consumeAutoAck;
+    }
+
+    public Function<Flux<AcknowledgableDelivery>, Flux<AcknowledgableDelivery>> getConsumeManualAck() {
+        return consumeManualAck;
+    }
 }

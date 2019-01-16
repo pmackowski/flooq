@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class TestUtils {
 
@@ -25,6 +26,10 @@ public class TestUtils {
 
     public static Flux<OutboundMessage> outboundMessageFlux(String exchange, String routingKey, int nbMessages) {
         return Flux.range(0, nbMessages).map(i -> new OutboundMessage(exchange, routingKey, "".getBytes()));
+    }
+
+    public static Flux<OutboundMessage> outboundMessageFlux(String exchange, Supplier<String> routingKey, int nbMessages) {
+        return Flux.range(0, nbMessages).map(i -> new OutboundMessage(exchange, routingKey.get(), "".getBytes()));
     }
 
     public static String declareQueue(Connection connection) throws Exception {

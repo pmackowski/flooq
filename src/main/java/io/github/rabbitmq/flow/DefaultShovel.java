@@ -59,6 +59,10 @@ class DefaultShovel implements Shovel {
         return outputExchange;
     }
 
+    public ExchangeType getOutputExchangeType() {
+        return outputExchangeType;
+    }
+
     public String getQueue() {
         return queue;
     }
@@ -66,4 +70,6 @@ class DefaultShovel implements Shovel {
     public String getRoutingKey() {
         return routingKey;
     }
+
+
 }

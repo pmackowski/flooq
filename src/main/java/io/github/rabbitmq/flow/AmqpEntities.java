@@ -1,7 +1,9 @@
 package io.github.rabbitmq.flow;
 
+import org.reactivestreams.Publisher;
 import reactor.rabbitmq.BindingSpecification;
 import reactor.rabbitmq.ExchangeSpecification;
+import reactor.rabbitmq.OutboundMessage;
 import reactor.rabbitmq.QueueSpecification;
 
 import java.util.*;
@@ -37,8 +39,7 @@ class AmqpEntities {
         exchangeNames.addAll(consumers.stream().map(consumer -> new ExchangeName(consumer.getInputExchange(), ExchangeType.TOPIC)).collect(Collectors.toSet()));
         exchangeNames.addAll(virtualConsumers.stream().map(virtualConsumer -> new ExchangeName(virtualConsumer.getInputExchange(), ExchangeType.CONSISTENT_HASH)).collect(Collectors.toSet()));
         exchangeNames.addAll(shovels.stream().map(shovel -> new ExchangeName(shovel.getInputExchange(), ExchangeType.TOPIC)).collect(Collectors.toSet()));
-        // TODO it does not have to be topic
-        exchangeNames.addAll(shovels.stream().map(shovel -> new ExchangeName(shovel.getOutputExchange(), ExchangeType.TOPIC)).collect(Collectors.toSet()));
+        exchangeNames.addAll(shovels.stream().map(shovel -> new ExchangeName(shovel.getOutputExchange(), shovel.getOutputExchangeType())).collect(Collectors.toSet()));
         exchangeNames.addAll(shovelPartitions.stream().map(shovelPartitions -> new ExchangeName(shovelPartitions.getInputExchange(), ExchangeType.CONSISTENT_HASH)).collect(Collectors.toSet()));
         exchangeNames.addAll(shovelPartitions.stream().map(shovelPartitions -> new ExchangeName(shovelPartitions.getOutputExchange(), shovelPartitions.getOutputExchangeType())).collect(Collectors.toSet()));
 
@@ -84,6 +85,49 @@ class AmqpEntities {
                         .queue(defaultShovelPartition.getQueue() + "." + i)
                         .routingKey(String.valueOf(defaultShovelPartition.getBuckets().get(i)))
                 )).collect(Collectors.toSet()));
+        return result;
+    }
+
+    Set<ConsumerSpecification> getConsumerSpecifications() {
+        Set<ConsumerSpecification> result = new HashSet<>();
+        result.addAll(consumers.stream()
+                        .map(consumer -> new ConsumerSpecification()
+                            .atMostOne(consumer.isAtMostOneConsumer())
+                            .leaseTime(consumer.getLeaseTime())
+                            .queue(consumer.getQueue())
+                            .consumeNoAck(consumer.getConsumeNoAck())
+                            .consumeAutoAck(consumer.getConsumeAutoAck())
+                            .consumeManualAck(consumer.getConsumeManualAck())
+                        )
+                        .collect(Collectors.toSet())
+        );
+        // TODO shovel
+//        result.addAll(shovels.stream().map(shovel -> new ConsumerSpecification()
+//                .atMostOne(false)
+//                .queue(shovel.getQueue())).collect(Collectors.toSet()));
+        result.addAll(virtualConsumers.stream()
+                .flatMap(defaultVirtualConsumer -> IntStream.range(0, defaultVirtualConsumer.getPartitions())
+                        .mapToObj(i -> new ConsumerSpecification()
+                                .atMostOne(defaultVirtualConsumer.isAtMostOne())
+                                .leaseTime(defaultVirtualConsumer.getLeaseTime())
+                                .queue(defaultVirtualConsumer.getQueueName() + "." + i)
+                                .consumeNoAck(defaultVirtualConsumer.getConsumeNoAck())
+                                .consumeAutoAck(defaultVirtualConsumer.getConsumeAutoAck())
+                                .consumeManualAck(defaultVirtualConsumer.getConsumeManualAck())
+                        ))
+                .collect(Collectors.toSet()));
+        // TODO shovel partitions
+
+        return result;
+    }
+
+    Map<String, Publisher<OutboundMessage>> getPublishers() {
+        Map<String, Publisher<OutboundMessage>> result = new HashMap<>();
+        topics.forEach(defaultExchange -> {
+            if (defaultExchange.getPublisher() != null) {
+                result.put(defaultExchange.getExchange(), defaultExchange.getPublisher());
+            }
+        });
         return result;
     }
 

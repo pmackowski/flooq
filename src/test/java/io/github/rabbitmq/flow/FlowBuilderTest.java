@@ -4,15 +4,21 @@ import com.rabbitmq.client.Delivery;
 import io.github.rabbitmq.flow.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
+import reactor.rabbitmq.Sender;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class FlowBuilderTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlowBuilderTest.class);
 
     private static final String EXCHANGE_NAME = "exchangeName";
     private static final String START_EXCHANGE = "startExchangeName";
@@ -106,17 +112,22 @@ public class FlowBuilderTest {
 
     @Test
     public void createTopicPartitionAndStartConsuming() {
+        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 10000000);
+
         Flow flow = new FlowBuilder()
+                .topicPartition(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher))
                 .fromTopicPartition(virtualConsumer -> virtualConsumer
                         .inputExchange(EXCHANGE_NAME)
                         // creates 2 queues `QUEUE_NAME.%d` where %d is in [1,2]
-                        .queue(QUEUE_NAME, 2)
-                        .buckets(Arrays.asList(1, 2))
+                        .queue(QUEUE_NAME, 5)
+                        .buckets(Arrays.asList(1, 2, 1, 1, 1))
                         // for each queue creates `no_instances` consumers
                         // if consumer dies, it is recreated
                         .consumeAutoAck(consume())
                 )
                 .build();
+
+        flow.start();
     }
 
     @Test
@@ -184,7 +195,7 @@ public class FlowBuilderTest {
 
     private Function<Flux<Delivery>, Flux<Delivery>> consume() {
         return messages ->
-                messages.doOnNext(System.out::println);
+                messages; //.doOnNext(delivery -> LOGGER.info("Received {}", new String(delivery.getBody())));
     }
 
     private Function<OutboundMessage, Publisher<OutboundMessage>> toLowercase() {

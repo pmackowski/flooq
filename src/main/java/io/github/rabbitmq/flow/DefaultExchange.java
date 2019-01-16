@@ -12,7 +12,8 @@ class DefaultExchange implements Exchange {
 
     @Override
     public Exchange exchange(String exchange) {
-        return exchange(exchange, ExchangeType.TOPIC);
+        this.exchange = exchange;
+        return this;
     }
 
     @Override
