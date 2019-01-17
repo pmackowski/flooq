@@ -1,7 +1,7 @@
 package io.github.rabbitmq.flow;
 
-import org.reactivestreams.Publisher;
-import reactor.rabbitmq.OutboundMessage;
+import com.rabbitmq.client.Delivery;
+import reactor.core.publisher.Flux;
 
 import java.util.function.Function;
 
@@ -17,5 +17,5 @@ public interface Shovel {
 
     Shovel routingKey(String routingKey);
 
-    Shovel transform(Function<OutboundMessage, Publisher<OutboundMessage>> transform);
+    Shovel transform(Function<Flux<Delivery>,Flux<Delivery>> transform);
 }

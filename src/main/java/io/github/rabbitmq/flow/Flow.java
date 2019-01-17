@@ -1,7 +1,9 @@
 package io.github.rabbitmq.flow;
 
+import reactor.core.publisher.Mono;
+
 public interface Flow {
 
-    void start();
+    Mono<Void> start();
 
 }

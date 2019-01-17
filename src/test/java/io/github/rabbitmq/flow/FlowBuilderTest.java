@@ -6,10 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
-import reactor.rabbitmq.Sender;
+import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -112,10 +113,12 @@ public class FlowBuilderTest {
 
     @Test
     public void createTopicPartitionAndStartConsuming() {
-        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 10000000);
+        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 100000000);
+        Flux<OutboundMessage> publisher2 = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 100000000);
 
         Flow flow = new FlowBuilder()
                 .topicPartition(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher))
+                .topicPartition(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher2))
                 .fromTopicPartition(virtualConsumer -> virtualConsumer
                         .inputExchange(EXCHANGE_NAME)
                         // creates 2 queues `QUEUE_NAME.%d` where %d is in [1,2]
@@ -127,7 +130,7 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        flow.start();
+        StepVerifier.create(flow.start()).verifyComplete();
     }
 
     @Test
@@ -151,14 +154,14 @@ public class FlowBuilderTest {
         Flow flow = new FlowBuilder()
                 .shovel(shovel -> shovel
                         .inputExchange(START_EXCHANGE)
-                        .outputExchange(END_EXCHANGE)
+                        .outputExchange(END_EXCHANGE, ExchangeType.TOPIC)
                         .queue(QUEUE_NAME_1)
                         .routingKey("1.*")
                         .transform(toLowercase())
                 )
                 .shovel(shovel -> shovel
                         .inputExchange(START_EXCHANGE)
-                        .outputExchange(END_EXCHANGE)
+                        .outputExchange(END_EXCHANGE, ExchangeType.TOPIC)
                         .queue(QUEUE_NAME_2)
                         .routingKey("2.*")
                         .transform(toUppercase())
@@ -166,15 +169,20 @@ public class FlowBuilderTest {
                 .fromTopic(consumer -> consumer
                         .inputExchange(END_EXCHANGE)
                         .queue(QUEUE_NAME)
-                        .consumeAutoAck(consume())
+                        .routingKey("#")
+                        .consumeNoAck(consume())
                 )
                 .build();
 
+        StepVerifier.create(flow.start()).verifyComplete();
     }
 
     @Test
     public void createShovelPartitionsAndTheConsume() {
+        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(START_EXCHANGE, () -> UUID.randomUUID().toString(), 1000);
+
         Flow flow = new FlowBuilder()
+                .topicPartition(exchange -> exchange.exchange(START_EXCHANGE).publisher(publisher))
                 .shovelPartitions(shovelPartition -> shovelPartition
                         .inputExchange(START_EXCHANGE)
                         .outputExchange(END_EXCHANGE, ExchangeType.TOPIC)
@@ -190,20 +198,19 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        flow.start();
+        StepVerifier.create(flow.start()).verifyComplete();
     }
 
     private Function<Flux<Delivery>, Flux<Delivery>> consume() {
-        return messages ->
-                messages; //.doOnNext(delivery -> LOGGER.info("Received {}", new String(delivery.getBody())));
+        return messages -> messages.doOnNext(delivery -> LOGGER.info("Received {}", new String(delivery.getBody())));
     }
 
-    private Function<OutboundMessage, Publisher<OutboundMessage>> toLowercase() {
-        return Mono::just;
+    private Function<Flux<Delivery>, Flux<Delivery>> toLowercase() {
+        return Function.identity();
     }
 
-    private Function<OutboundMessage, Publisher<OutboundMessage>> toUppercase() {
-        return Mono::just;
+    private Function<Flux<Delivery>, Flux<Delivery>> toUppercase() {
+        return Function.identity();
     }
 
 }

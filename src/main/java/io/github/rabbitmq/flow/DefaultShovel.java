@@ -1,7 +1,7 @@
 package io.github.rabbitmq.flow;
 
-import org.reactivestreams.Publisher;
-import reactor.rabbitmq.OutboundMessage;
+import com.rabbitmq.client.Delivery;
+import reactor.core.publisher.Flux;
 
 import java.util.function.Function;
 
@@ -12,7 +12,7 @@ class DefaultShovel implements Shovel {
     private ExchangeType outputExchangeType;
     private String queue;
     private String routingKey;
-    private Function<OutboundMessage, Publisher<OutboundMessage>> transform;
+    private Function<Flux<Delivery>, Flux<Delivery>> transform;
 
     @Override
     public Shovel inputExchange(String inputExchange) {
@@ -46,7 +46,7 @@ class DefaultShovel implements Shovel {
     }
 
     @Override
-    public Shovel transform(Function<OutboundMessage, Publisher<OutboundMessage>> transform) {
+    public Shovel transform(Function<Flux<Delivery>, Flux<Delivery>> transform) {
         this.transform = transform;
         return this;
     }
@@ -71,5 +71,7 @@ class DefaultShovel implements Shovel {
         return routingKey;
     }
 
-
+    public Function<Flux<Delivery>, Flux<Delivery>> getTransform() {
+        return transform;
+    }
 }

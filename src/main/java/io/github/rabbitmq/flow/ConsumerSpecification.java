@@ -10,6 +10,7 @@ import java.util.function.Function;
 class ConsumerSpecification {
 
     private String queue;
+    private String exchange;
     private boolean atMostOne;
     private Duration leaseTime;
     private Function<Flux<Delivery>,Flux<Delivery>> consumeNoAck;
@@ -22,6 +23,15 @@ class ConsumerSpecification {
 
     public ConsumerSpecification queue(String queue) {
         this.queue = queue;
+        return this;
+    }
+
+    public String getExchange() {
+        return exchange;
+    }
+
+    public ConsumerSpecification exchange(String exchange) {
+        this.exchange = exchange;
         return this;
     }
 

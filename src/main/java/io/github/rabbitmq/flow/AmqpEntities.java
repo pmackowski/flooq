@@ -60,7 +60,7 @@ class AmqpEntities {
                 .flatMap(defaultShovelPartition -> IntStream.range(0, defaultShovelPartition.getPartitions()).mapToObj(i -> defaultShovelPartition.getQueue() + "." + i))
                 .collect(Collectors.toSet()));
 
-        return queueNames.stream().map(queueName -> new QueueSpecification().name(queueName)).collect(Collectors.toSet());
+        return queueNames.stream().map(queueName -> new QueueSpecification().name(queueName).exclusive(false)).collect(Collectors.toSet());
     }
 
     Set<BindingSpecification> getBindingSpecifications() {
@@ -101,10 +101,13 @@ class AmqpEntities {
                         )
                         .collect(Collectors.toSet())
         );
-        // TODO shovel
-//        result.addAll(shovels.stream().map(shovel -> new ConsumerSpecification()
-//                .atMostOne(false)
-//                .queue(shovel.getQueue())).collect(Collectors.toSet()));
+        result.addAll(shovels.stream()
+                             .map(shovel -> new ConsumerSpecification()
+                             .exchange(shovel.getOutputExchange())
+                             .consumeNoAck(shovel.getTransform())
+                             .atMostOne(false)
+                             .queue(shovel.getQueue())).collect(Collectors.toSet()));
+
         result.addAll(virtualConsumers.stream()
                 .flatMap(defaultVirtualConsumer -> IntStream.range(0, defaultVirtualConsumer.getPartitions())
                         .mapToObj(i -> new ConsumerSpecification()
@@ -116,19 +119,21 @@ class AmqpEntities {
                                 .consumeManualAck(defaultVirtualConsumer.getConsumeManualAck())
                         ))
                 .collect(Collectors.toSet()));
-        // TODO shovel partitions
+
+        result.addAll(shovelPartitions.stream()
+                .flatMap(shovelPartition -> IntStream.range(0, shovelPartition.getPartitions())
+                            .mapToObj(i -> new ConsumerSpecification()
+                                .consumeNoAck(shovelPartition.getTransform())
+                                .exchange(shovelPartition.getOutputExchange())
+                                .atMostOne(false)
+                                .queue(shovelPartition.getQueue() + "." + i))
+                ).collect(Collectors.toSet()));
 
         return result;
     }
 
-    Map<String, Publisher<OutboundMessage>> getPublishers() {
-        Map<String, Publisher<OutboundMessage>> result = new HashMap<>();
-        topics.forEach(defaultExchange -> {
-            if (defaultExchange.getPublisher() != null) {
-                result.put(defaultExchange.getExchange(), defaultExchange.getPublisher());
-            }
-        });
-        return result;
+    List<Publisher<OutboundMessage>> getPublishers() {
+        return topics.stream().map(DefaultExchange::getPublisher).collect(Collectors.toList());
     }
 
     private static class ExchangeName {

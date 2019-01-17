@@ -1,7 +1,7 @@
 package io.github.rabbitmq.flow;
 
-import org.reactivestreams.Publisher;
-import reactor.rabbitmq.OutboundMessage;
+import com.rabbitmq.client.Delivery;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class DefaultShovelPartition implements ShovelPartition {
     private String queue;
     private int partitions;
     private List<Integer> buckets = new ArrayList<>();
-    private Function<OutboundMessage, Publisher<OutboundMessage>> transform;
+    private Function<Flux<Delivery>, Flux<Delivery>> transform;
 
     @Override
     public ShovelPartition inputExchange(String inputExchange) {
@@ -57,7 +57,7 @@ public class DefaultShovelPartition implements ShovelPartition {
     }
 
     @Override
-    public ShovelPartition transform(Function<OutboundMessage, Publisher<OutboundMessage>> transform) {
+    public ShovelPartition transform(Function<Flux<Delivery>, Flux<Delivery>> transform) {
         this.transform = transform;
         return this;
     }
@@ -86,7 +86,7 @@ public class DefaultShovelPartition implements ShovelPartition {
         return buckets;
     }
 
-    public Function<OutboundMessage, Publisher<OutboundMessage>> getTransform() {
+    public Function<Flux<Delivery>, Flux<Delivery>> getTransform() {
         return transform;
     }
 }

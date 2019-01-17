@@ -2,6 +2,8 @@ package io.github.rabbitmq.flow.utils;
 
 import com.rabbitmq.client.*;
 import io.github.rabbitmq.flow.FlowException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
@@ -13,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class TestUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
 
     public static Connection newConnection() throws Exception {
         ConnectionFactory connectionFactory = new ConnectionFactory();
@@ -29,7 +33,9 @@ public class TestUtils {
     }
 
     public static Flux<OutboundMessage> outboundMessageFlux(String exchange, Supplier<String> routingKey, int nbMessages) {
-        return Flux.range(0, nbMessages).map(i -> new OutboundMessage(exchange, routingKey.get(), "".getBytes()));
+        return Flux.range(0, nbMessages)
+                    .map(i -> new OutboundMessage(exchange, routingKey.get(), String.valueOf(i).getBytes()))
+                    .doOnNext(s -> LOGGER.info("Send {}", new String(s.getBody())));
     }
 
     public static String declareQueue(Connection connection) throws Exception {
