@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-
+    implementation 'io.projectreactor.addons:reactor-extra:3.1.7.RELEASE'
     implementation 'io.projectreactor:reactor-core:3.2.3.RELEASE'
     implementation 'com.rabbitmq:amqp-client:5.5.2'
     implementation 'io.projectreactor.rabbitmq:reactor-rabbitmq:1.0.0.RELEASE'

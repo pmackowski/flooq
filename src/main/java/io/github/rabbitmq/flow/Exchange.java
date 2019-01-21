@@ -27,4 +27,10 @@ public interface Exchange {
      */
     Exchange publisher(Publisher<OutboundMessage> publisher);
 
+    /**
+     * Ensures at most one publisher in a cluster.
+     * @param atMostOnePublisher
+     * @return the current {@link Exchange} instance
+     */
+    Exchange atMostOnePublisher(boolean atMostOnePublisher);
 }

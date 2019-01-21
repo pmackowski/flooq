@@ -3,14 +3,11 @@ package io.github.rabbitmq.flow;
 import com.rabbitmq.client.Delivery;
 import io.github.rabbitmq.flow.utils.TestUtils;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
-import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -74,20 +71,31 @@ public class FlowBuilderTest {
     }
 
     @Test
-    public void createsTopicAndStartConsumingExclusivelyInCluster() {
-        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, "", 10);
+    public void createsTopicAndStartConsumingExclusivelyInCluster() throws InterruptedException {
+        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, "", 1000);
 
         Flow flow = new FlowBuilder()
-                .topic(exchange -> exchange.exchange(EXCHANGE_NAME).publisher(publisher))
+                .topic(exchange -> exchange.exchange(EXCHANGE_NAME).atMostOnePublisher(true).publisher(publisher))
                 .fromTopic(consumer -> consumer
                         .inputExchange(EXCHANGE_NAME)
                         .routingKey("#")
-                        .queue(QUEUE_NAME)
+                        .queue("queueOne")
                         // ensures that at most one consumer is created in a cluster
-                        .atMostOne()
-                        .consumeAutoAck(consume())
+                        .atMostOne(Duration.ofSeconds(15))
+                        .consumeNoAck(consume())
+                )
+                .fromTopic(consumer -> consumer
+                        .inputExchange(EXCHANGE_NAME)
+                        .routingKey("#")
+                        .queue("queueTwo")
+
+                        .consumeNoAck(consume())
                 )
                 .build();
+
+        flow.start();
+        flow.start();
+        Thread.sleep(1000000);
     }
 
     @Test
@@ -112,7 +120,7 @@ public class FlowBuilderTest {
     }
 
     @Test
-    public void createTopicPartitionAndStartConsuming() {
+    public void createTopicPartitionAndStartConsuming() throws InterruptedException {
         Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 100000000);
         Flux<OutboundMessage> publisher2 = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 100000000);
 
@@ -130,23 +138,40 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        StepVerifier.create(flow.start()).verifyComplete();
+        flow.start();
+        Thread.sleep(100000000);
     }
 
     @Test
-    public void createTopicPartitionAndStartConsumingExclusivelyInCluster() {
+    public void createTopicPartitionAndStartConsumingExclusivelyInCluster() throws InterruptedException {
+        Flux<OutboundMessage> publisher = TestUtils.outboundMessageFlux(EXCHANGE_NAME, () -> UUID.randomUUID().toString(), 100);
+
         Flow flow = new FlowBuilder()
+                .topicPartition(exchange -> exchange.exchange(EXCHANGE_NAME).atMostOnePublisher(true).publisher(publisher))
                 .fromTopicPartition(virtualConsumer -> virtualConsumer
                         .inputExchange(EXCHANGE_NAME)
                         // creates 2 queues `QUEUE_NAME.%d` where %d is in [1,2]
-                        .queue(QUEUE_NAME, 2)
-                        .buckets(Arrays.asList(1, 2))
+                        .queue(QUEUE_NAME, 4)
+                        //.buckets(Arrays.asList(1, 2))
                         // ensures through distributed lock that at most one consumer is created in a cluster
                         // it stops consuming after 5 minutes so as not to starve other instances
-                        .atMostOne(Duration.ofMinutes(5))
-                        .consumeAutoAck(consume())
+                        .atMostOne(Duration.ofSeconds(3))
+                        .consumeNoAck(consume())
                 )
                 .build();
+
+        Disposable server1 = flow.start();
+        Disposable server2 = flow.start();
+        Disposable server3 = flow.start();
+        Disposable server4 = flow.start();
+
+        Thread.sleep(10000);
+        server1.dispose();
+        server2.dispose();
+        server3.dispose();
+
+        Thread.sleep(10000000);
+
     }
 
     @Test
@@ -174,7 +199,7 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        StepVerifier.create(flow.start()).verifyComplete();
+        flow.start();
     }
 
     @Test
@@ -198,7 +223,7 @@ public class FlowBuilderTest {
                 )
                 .build();
 
-        StepVerifier.create(flow.start()).verifyComplete();
+        flow.start();
     }
 
     private Function<Flux<Delivery>, Flux<Delivery>> consume() {

@@ -1,16 +1,28 @@
 package io.github.rabbitmq.flow;
 
-import reactor.rabbitmq.RabbitFlux;
-import reactor.rabbitmq.Receiver;
-import reactor.rabbitmq.Sender;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import reactor.core.publisher.Mono;
+import reactor.rabbitmq.*;
 
 public class FlowOptions {
 
     private FlowLock flowLock;
 
-    private Sender sender = RabbitFlux.createSender();
+    private String name;
 
-    private Receiver receiver = RabbitFlux.createReceiver();
+    private Sender sender;
+
+    private Receiver receiver;
+
+    public FlowOptions() {
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.useNio();
+        // one connection per whole flow (for testing purposes)!!! important especially for exclusive queues
+        Mono<? extends Connection> connectionMono = Utils.singleConnectionMono(connectionFactory);
+        this.sender = RabbitFlux.createSender(new SenderOptions().connectionMono(connectionMono));
+        this.receiver = RabbitFlux.createReceiver(new ReceiverOptions().connectionMono(connectionMono));
+    }
 
     public FlowLock getFlowLock() {
         return flowLock;

@@ -29,11 +29,12 @@ public class TestUtils {
     }
 
     public static Flux<OutboundMessage> outboundMessageFlux(String exchange, String routingKey, int nbMessages) {
-        return Flux.range(0, nbMessages).map(i -> new OutboundMessage(exchange, routingKey, "".getBytes()));
+        return Flux.range(0, nbMessages).delayElements(Duration.ofSeconds(1)).map(i -> new OutboundMessage(exchange, routingKey, "".getBytes()));
     }
 
     public static Flux<OutboundMessage> outboundMessageFlux(String exchange, Supplier<String> routingKey, int nbMessages) {
         return Flux.range(0, nbMessages)
+                    .delayElements(Duration.ofSeconds(1))
                     .map(i -> new OutboundMessage(exchange, routingKey.get(), String.valueOf(i).getBytes()))
                     .doOnNext(s -> LOGGER.info("Send {}", new String(s.getBody())));
     }

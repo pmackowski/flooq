@@ -46,6 +46,7 @@ class AmqpEntities {
         return exchangeNames.stream().map(exchangeName -> new ExchangeSpecification()
                 .name(exchangeName.getName())
                 .type(exchangeName.getType())
+                .autoDelete(true)
         ).collect(Collectors.toSet());
     }
 
@@ -60,7 +61,7 @@ class AmqpEntities {
                 .flatMap(defaultShovelPartition -> IntStream.range(0, defaultShovelPartition.getPartitions()).mapToObj(i -> defaultShovelPartition.getQueue() + "." + i))
                 .collect(Collectors.toSet()));
 
-        return queueNames.stream().map(queueName -> new QueueSpecification().name(queueName).exclusive(false)).collect(Collectors.toSet());
+        return queueNames.stream().map(queueName -> new QueueSpecification().name(queueName).exclusive(true)).collect(Collectors.toSet());
     }
 
     Set<BindingSpecification> getBindingSpecifications() {

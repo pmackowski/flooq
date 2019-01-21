@@ -9,6 +9,7 @@ class DefaultExchange implements Exchange {
     private String exchange;
     private ExchangeType exchangeType = ExchangeType.TOPIC;
     private Publisher<OutboundMessage> publisher = Mono.empty();
+    private boolean atMostOnePublisher;
 
     @Override
     public Exchange exchange(String exchange) {
@@ -34,6 +35,12 @@ class DefaultExchange implements Exchange {
         return this;
     }
 
+    @Override
+    public Exchange atMostOnePublisher(boolean atMostOnePublisher) {
+        this.atMostOnePublisher = atMostOnePublisher;
+        return this;
+    }
+
     public String getExchange() {
         return exchange;
     }
@@ -46,4 +53,7 @@ class DefaultExchange implements Exchange {
         return publisher;
     }
 
+    public boolean isAtMostOnePublisher() {
+        return atMostOnePublisher;
+    }
 }
