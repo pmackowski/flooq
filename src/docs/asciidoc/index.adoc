@@ -1,0 +1,14 @@
+= RabbitMq Flow
+Paweł Maćkowski <pawel.piotr.mackowski@gmail.com>
+1.0.0-SNAPSHOT
+:doctype: book
+:toc: left
+:source-highlighter: prettify
+:numbered:
+:icons: font
+:hide-uri-scheme:
+
+:test-examples: ../../test/java/io/github/rabbitmq/flow/docs
+
+= Introduction
+include::overview.adoc[]
