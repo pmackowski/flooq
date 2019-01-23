@@ -11,6 +11,23 @@ import java.util.function.Function;
 
 public class ApiFlow {
 
+    public void overview() {
+        // tag::overview[]
+        Flow flow = new FlowBuilder()
+                .fromTopic(consumer -> consumer
+                        .inputExchange("my.exchange")       // <1>
+                        .queue("my.queue")                  // <2>
+                        .routingKey("#")                    // <3>
+                        .consumeNoAck(messages -> messages  // <4>
+                                .map(this::toUppercase)
+                        )
+                )
+                .build();
+
+        Disposable disposable = flow.start();               // <5>
+        // end::overview[]
+    }
+
     public void topic() {
         // tag::topic[]
         String myExchange = "myExchange";
@@ -87,6 +104,10 @@ public class ApiFlow {
 
     private Flux<OutboundMessage> publisher() {
         return Flux.empty();
+    }
+
+    private Delivery toUppercase(Delivery delivery) {
+        return delivery;
     }
 
 }

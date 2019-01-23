@@ -1,0 +1,13 @@
+== FAQ
+
+Why `Consistent Hash Exchange` plugin?
+
+Queue in RabbitMQ has an important limitation. Namely, it is bound to a single CPU core and can handle up to
+50k messages/s. If multiple guarantees are enabled (e.g. consumer acknowledgement, mirrored queues) this ratio is much lower.
+It is not much especially if we compare it to brokers such as Kafka.
+
+Better performance can be achieved by scaling out queues.
+I have not found a good approach.
+
+rabbitmq-sharding plugin provides one virtual queue visible for consumers and manages multiple real queues internally
+but

@@ -1,0 +1,8 @@
+== Requirements
+
+*Consistent Hash Exchange* plugin is the only one requirement for RabbitMQ installation. It has to be enabled before it can be used:
+
+[source,bash]
+----
+rabbitmq-plugins enable rabbitmq_consistent_hash_exchange
+----

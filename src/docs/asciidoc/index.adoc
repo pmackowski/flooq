@@ -10,5 +10,6 @@ Paweł Maćkowski <pawel.piotr.mackowski@gmail.com>
 
 :test-examples: ../../test/java/io/github/rabbitmq/flow/docs
 
-= Introduction
 include::overview.adoc[]
+include::examples.adoc[]
+include::faq.adoc[]
