@@ -1,8 +1,23 @@
-== Requirements
+== Getting Started
 
-*Consistent Hash Exchange* plugin is the only one requirement for RabbitMQ installation. It has to be enabled before it can be used:
+=== Requirements
 
-[source,bash]
+You need Java JRE installed (Java 8 or later).
+
+You also need to install RabbitMQ with https://github.com/rabbitmq/rabbitmq-consistent-hash-exchange[RabbitMQ Consistent Hash Exchange Type plugin enabled].
+
+Follow the http://www.rabbitmq.com/download.html[instructions from the website]. Once you are done, enable plugin:
+
+[source]
 ----
-rabbitmq-plugins enable rabbitmq_consistent_hash_exchange
+> rabbitmq-plugins enable rabbitmq_consistent_hash_exchange
+----
+
+Note you should use RabbitMQ 3.6.x or later.
+
+=== Quick Start
+
+[source]
+----
+> ./gradlew -q sample
 ----
