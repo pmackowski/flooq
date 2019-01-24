@@ -3,10 +3,14 @@
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+                %d{HH:mm:ss.SSS} %-5level%logger{36} - %msg%n
             </pattern>
         </encoder>
     </appender>
+
+   <!-- <logger name="reactor" level="warn"/>-->
+
+    <logger name="io.github.flooq.samples" level="info"/>
 
     <root level="info">
         <appender-ref ref="stdout"/>

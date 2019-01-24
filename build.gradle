@@ -127,8 +127,8 @@ configure(allprojects) { project ->
 }
 
 configure(rootProject) {
-    archivesBaseName = 'rabbitmq-flow'
-    description = 'Reactor RabbitMQ: A reactive API for RabbitMQ'
+    archivesBaseName = 'flooq'
+    description = 'Flooq: A reactive API for RabbitMQ'
 
     jar {
         manifest {
@@ -150,9 +150,9 @@ configure(rootProject) {
 
 }
 
-project(':rabbitmq-flow-samples') {
-    archivesBaseName = 'rabbitmq-flow-samples'
-    description = 'Samples for Reactor RabbitMQ'
+project(':flooq-samples') {
+    archivesBaseName = 'flooq-samples'
+    description = 'Samples for Flooq'
     dependencies {
         compile rootProject
         runtime "ch.qos.logback:logback-classic:$logbackVersion"
@@ -161,7 +161,7 @@ project(':rabbitmq-flow-samples') {
     }
 
     task sample(type:JavaExec) {
-        main = 'io.github.rabbitmq.flow.samples.SampleFlow'
+        main = 'io.github.flooq.samples.SampleFlooq'
         classpath = sourceSets.main.runtimeClasspath
     }
 

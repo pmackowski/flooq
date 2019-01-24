@@ -1,4 +1,4 @@
-= RabbitMq Flow
+= Flooq
 Paweł Maćkowski <pawel.piotr.mackowski@gmail.com>
 1.0.0-SNAPSHOT
 :doctype: book
@@ -8,7 +8,7 @@ Paweł Maćkowski <pawel.piotr.mackowski@gmail.com>
 :icons: font
 :hide-uri-scheme:
 
-:test-examples: ../../test/java/io/github/rabbitmq/flow/docs
+:test-examples: ../../test/java/io/github/flooq/docs
 
 include::overview.adoc[]
 include::getting-started.adoc[]

@@ -4,7 +4,7 @@
 
 [source,java,indent=0]
 ----
-include::{test-examples}/ApiFlow.java[tag=topic]
+include::{test-examples}/FlooqApi.java[tag=topic]
 ----
 <1> declare topic exchange
 <2> with name
@@ -16,7 +16,7 @@ include::{test-examples}/ApiFlow.java[tag=topic]
 
 [source,java,indent=0]
 ----
-include::{test-examples}/ApiFlow.java[tag=topic-partition]
+include::{test-examples}/FlooqApi.java[tag=topic-partition]
 ----
 <1> declare x-consistent-hash exchange
 <2> with name
@@ -28,7 +28,7 @@ include::{test-examples}/ApiFlow.java[tag=topic-partition]
 
 [source,java,indent=0]
 ----
-include::{test-examples}/ApiFlow.java[tag=topic-with-consumer]
+include::{test-examples}/FlooqApi.java[tag=topic-with-consumer]
 ----
 <1> declare topic exchange with name `myExchange`
 <2> declare queue `myQueue` and binds it to `myExchange` with routing key `#`
@@ -38,7 +38,7 @@ include::{test-examples}/ApiFlow.java[tag=topic-with-consumer]
 
 [source,java,indent=0]
 ----
-include::{test-examples}/ApiFlow.java[tag=topic-with-virtual-consumer]
+include::{test-examples}/FlooqApi.java[tag=topic-with-virtual-consumer]
 ----
 <1> creates 5 queues `myQueue.%d` where %d is in [1,2,3,4,5]
 <2> creates one consumer for queue `myQueue.%d` for each Flow instance

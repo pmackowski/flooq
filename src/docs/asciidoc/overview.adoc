@@ -4,11 +4,11 @@
 RabbitMQ is the most popular open source message broker. It supports several messaging protocols with
 AMQP protocol being at the forefront.
 
-=== RabbitMQ Flow library
-RabbitMQ Flow provides an alternative reactive API for communicating with RabbitMQ using AMQP.
+=== Flooq library
+Flooq provides an alternative reactive API for communicating with RabbitMQ using AMQP.
 It is not intended to replace any of the existing libraries (even encourages to be used with Reactor RabbitMQ).
 
-RabbitMQ Flow is build on top of Reactor RabbitMQ and Reactor 3 libraries.
+Flooq is build on top of Reactor RabbitMQ and Reactor 3 libraries.
 It is especially worth considering when any of these libraries are already used.
 Following diagram shows its relation to other libraries:
 
@@ -18,18 +18,18 @@ Following diagram shows its relation to other libraries:
 AMQP ---- RabbitMq Java Client
                                 \
                                  \
-                                   Reactor RabbitMQ <---- RabbitMQ Flow ----> Project Reactor
+                                   Reactor RabbitMQ <---- Flooq ----> Project Reactor
 
-=== RabbitMQ Flow instance
+=== Flooq instance
 
-Everything revolves around `Flow` instance, which is a first-class citizen in RabbitMQ Flow.
+Everything revolves around `Flooq` instance, which is a first-class citizen in library.
 
-`Flow` enables building complex scenarios in a functional way. Under the hood,
-it forms a graph through which messages flow and are consumed underway. `Flow` is an owner
+`Flooq` enables building complex scenarios in a functional way. Under the hood,
+it forms a graph through which messages flow and are consumed underway. `Flooq` is an owner
 of all AMQP entities (exchanges, queues, bindings) that are part of its definition.
 It also manages the lifecycle of consumers and producers, creating and destroying them if needed.
 
-`Flow` is a single unit of work, which e.g. can started or stopped. It is a lazy structure,
+`Flooq` is a single unit of work, which e.g. can started or stopped. It is a lazy structure,
 nothing happens until it is started.
 
 With its high level API one should consider it as an opinionated library.
@@ -40,7 +40,7 @@ Here, you can see a simple flow with one consumer:
 
 [source,java,indent=0]
 ----
-include::{test-examples}/ApiFlow.java[tag=overview]
+include::{test-examples}/FlooqApi.java[tag=overview]
 ----
 <1> declare topic exchange *my.exchange*
 <2> declare queue *my.queue*

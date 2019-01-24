@@ -21,10 +21,10 @@ configure(rootProject) {
 
   javadoc {
 	dependsOn jar
-	group = "RabbitMQ Flow Javadoc"
+	group = "RabbitMQ Flooq Javadoc"
 
 	description = "Generates aggregated Javadoc API documentation."
-	title = "RabbitMQ Flow ${version}"
+	title = "RabbitMQ Flooq ${version}"
 
 	if (JavaVersion.current().isJava8Compatible()) {
 	  compileTestJava.options.compilerArgs += "-parameters"
@@ -35,7 +35,7 @@ configure(rootProject) {
 
 	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 	options.author = true
-	options.header = "RabbitMQ Flow"
+	options.header = "RabbitMQ Flooq"
 	options.overview = "src/api/overview.html"
 	options.stylesheetFile = file("src/api/stylesheet.css")
 	options.links(rootProject.ext.javadocLinks)
@@ -68,12 +68,12 @@ configure(rootProject) {
 
 	doLast {
 	  file("$outputDir/pdf/index.pdf").
-			  renameTo("$outputDir/pdf/rabbitmq-flow-reference-guide-${version}.pdf")
+			  renameTo("$outputDir/pdf/flooq-reference-guide-${version}.pdf")
 	}
   }
   task docsZip(type: Zip, dependsOn: asciidoctor) {
-	baseName = 'rabbitmq-flow-docs'
-	from("$buildDir/asciidoc/pdf/rabbitmq-flow-reference-guide-${version}.pdf") { into("docs/") }
+	baseName = 'flooq-docs'
+	from("$buildDir/asciidoc/pdf/flooq-reference-guide-${version}.pdf") { into("docs/") }
 	from("$buildDir/asciidoc/html5/index.html") { into("docs/") }
 	from("$buildDir/asciidoc/html5/images") { into("images/") }
   }
