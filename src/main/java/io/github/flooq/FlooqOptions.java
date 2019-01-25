@@ -46,7 +46,7 @@ public class FlooqOptions {
         return receiver;
     }
 
-    public FlooqOptions setReceiver(Receiver receiver) {
+    public FlooqOptions receiver(Receiver receiver) {
         this.receiver = receiver;
         return this;
     }

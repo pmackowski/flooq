@@ -1,0 +1,8 @@
+== Spring integration
+
+[source,java,indent=0]
+----
+include::{test-examples}/FlooqConfigurationApi.java[tag=spring]
+----
+<1> provide connection details such as host,port,username and password
+<2> one connection shared by Sender and Receiver

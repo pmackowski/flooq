@@ -13,4 +13,5 @@ Paweł Maćkowski <pawel.piotr.mackowski@gmail.com>
 include::overview.adoc[]
 include::getting-started.adoc[]
 include::examples.adoc[]
+include::spring-integration.adoc[]
 include::faq.adoc[]
